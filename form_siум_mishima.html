@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סיום משימה</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; direction: rtl; background: #f5f5f5; min-height: 100vh; padding: 1rem; }
+  .form-wrap { max-width: 640px; margin: 0 auto; }
+  .form-header { background: #673ab7; color: white; border-radius: 12px 12px 0 0; padding: 1.5rem; }
+  .form-header h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .form-header p { font-size: 14px; opacity: 0.85; }
+  .form-body { background: white; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 12px 12px; padding: 1.5rem; }
+  .field { margin-bottom: 1.25rem; }
+  label { display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 6px; }
+  label .req { color: #e53935; margin-right: 2px; }
+  .readonly-val { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 12px; font-size: 14px; color: #666; }
+  .upload-zone { border: 2px dashed #bdbdbd; border-radius: 8px; padding: 1.25rem; text-align: center; cursor: pointer; transition: background 0.15s; }
+  .upload-zone:hover { background: #fafafa; }
+  .upload-zone p { font-size: 14px; color: #757575; margin-bottom: 4px; }
+  .upload-zone small { font-size: 12px; color: #9e9e9e; }
+  .upload-zone .icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .file-list { margin-top: 8px; }
+  .file-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #2e7d32; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
+  .file-item:last-child { border-bottom: none; }
+  textarea { width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: Arial, sans-serif; resize: vertical; min-height: 80px; direction: rtl; }
+  .submit-btn { width: 100%; background: #673ab7; color: white; border: none; border-radius: 8px; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 0.5rem; }
+  .submit-btn:hover { background: #5e35b1; }
+  .submit-btn:disabled { background: #bdbdbd; cursor: not-allowed; }
+  .progress-wrap { margin-top: 1rem; }
+  .progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #673ab7; width: 0%; transition: width 0.3s; border-radius: 4px; }
+  .progress-label { font-size: 13px; color: #757575; margin-top: 6px; text-align: center; }
+  .divider { border: none; border-top: 1px solid #f0f0f0; margin: 1.25rem 0; }
+  .success-screen { display: none; text-align: center; padding: 3rem 1rem; }
+  .success-screen .check { font-size: 56px; margin-bottom: 1rem; }
+  .success-screen h2 { font-size: 22px; color: #2e7d32; margin-bottom: 8px; }
+  .success-screen p { font-size: 15px; color: #757575; }
+  .error-msg { background: #ffebee; border: 1px solid #ef9a9a; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #c62828; margin-top: 0.75rem; display: none; }
+</style>
+</head>
+<body>
+
+<div class="form-wrap">
+  <div class="form-header">
+    <h1>סיום משימה</h1>
+    <p>מלא את הפרטים ושלח תמונות לתיעוד המשימה</p>
+  </div>
+
+  <div class="form-body" id="form-body">
+    <div class="field">
+      <label>קוד משימה</label>
+      <div class="readonly-val" id="disp-taskCode">—</div>
+    </div>
+    <div class="field">
+      <label>שם משימה</label>
+      <div class="readonly-val" id="disp-taskName">—</div>
+    </div>
+    <div class="field">
+      <label>תאריך</label>
+      <div class="readonly-val" id="disp-date">—</div>
+    </div>
+    <div class="field">
+      <label>צוות</label>
+      <div class="readonly-val" id="disp-team">—</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="field">
+      <label><span class="req">*</span> תמונות לפני</label>
+      <div class="upload-zone" onclick="document.getElementById('before-input').click()">
+        <span class="icon">📷</span>
+        <p>לחץ לבחירת תמונות לפני הביצוע</p>
+        <small>ניתן לבחור מספר תמונות</small>
+      </div>
+      <input type="file" id="before-input" multiple accept="image/*" style="display:none" onchange="showFiles(this,'before-list')">
+      <div class="file-list" id="before-list"></div>
+    </div>
+
+    <div class="field">
+      <label><span class="req">*</span> תמונות אחרי</label>
+      <div class="upload-zone" onclick="document.getElementById('after-input').click()">
+        <span class="icon">📷</span>
+        <p>לחץ לבחירת תמונות אחרי הביצוע</p>
+        <small>ניתן לבחור מספר תמונות</small>
+      </div>
+      <input type="file" id="after-input" multiple accept="image/*" style="display:none" onchange="showFiles(this,'after-list')">
+      <div class="file-list" id="after-list"></div>
+    </div>
+
+    <div class="field">
+      <label>תיעודים / קבלות</label>
+      <div class="upload-zone" onclick="document.getElementById('docs-input').click()">
+        <span class="icon">📎</span>
+        <p>לחץ לצירוף קבצים (אופציונלי)</p>
+        <small>תמונות, PDF וכדומה</small>
+      </div>
+      <input type="file" id="docs-input" multiple accept="image/*,application/pdf" style="display:none" onchange="showFiles(this,'docs-list')">
+      <div class="file-list" id="docs-list"></div>
+    </div>
+
+    <div class="field">
+      <label>מידע נוסף</label>
+      <textarea id="notes" placeholder="הערות, בעיות שנתגלו, מידע נוסף..."></textarea>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">שלח ✓</button>
+
+    <div class="progress-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label">מתחיל העלאה...</div>
+    </div>
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="check">✅</div>
+    <h2>העלאת התמונות הושלמה בהצלחה</h2>
+    <p>תודה! המשימה נרשמה במערכת.</p>
+  </div>
+</div>
+
+<script>
+// ====================================================
+// הגדרות - החלף את הכתובת ב-URL של ה-Web App שלך
+// ====================================================
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby31_UGG7T8Vo3l8fy14cP16OXeAFTKUkL6RDzudhNNqqIwd9uxyZ5bPsnKrS3O3oPv/exec";
+const MAX_IMAGE_SIZE = 1600; // פיקסלים מקסימלי לצד הארוך (כיווץ)
+const IMAGE_QUALITY = 0.75;  // איכות JPEG אחרי כיווץ (0-1)
+
+// ====================================================
+// קריאת פרמטרים מה-URL
+// ====================================================
+const params = new URLSearchParams(window.location.search);
+const taskCode = params.get("taskCode") || "";
+const taskName = params.get("taskName") || "";
+const taskDate = params.get("taskDate") || "";
+const team     = params.get("team") || "";
+
+document.getElementById("disp-taskCode").textContent = taskCode || "—";
+document.getElementById("disp-taskName").textContent = taskName || "—";
+document.getElementById("disp-date").textContent     = taskDate || "—";
+document.getElementById("disp-team").textContent     = team     || "—";
+
+// ====================================================
+// הצגת שמות קבצים שנבחרו
+// ====================================================
+function showFiles(input, listId) {
+  const el = document.getElementById(listId);
+  el.innerHTML = "";
+  Array.from(input.files).forEach(f => {
+    const div = document.createElement("div");
+    div.className = "file-item";
+    div.textContent = "✓ " + f.name;
+    el.appendChild(div);
+  });
+}
+
+// ====================================================
+// כיווץ תמונה בצד הלקוח לפני שליחה
+// ====================================================
+function compressImage(file) {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith("image/")) { resolve(file); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > MAX_IMAGE_SIZE || h > MAX_IMAGE_SIZE) {
+          if (w > h) { h = Math.round(h * MAX_IMAGE_SIZE / w); w = MAX_IMAGE_SIZE; }
+          else       { w = Math.round(w * MAX_IMAGE_SIZE / h); h = MAX_IMAGE_SIZE; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        canvas.toBlob((blob) => {
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        }, "image/jpeg", IMAGE_QUALITY);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ====================================================
+// שליחת הטופס
+// ====================================================
+async function submitForm() {
+  const beforeFiles = document.getElementById("before-input").files;
+  const afterFiles  = document.getElementById("after-input").files;
+  const docsFiles   = document.getElementById("docs-input").files;
+  const notes       = document.getElementById("notes").value;
+  const errorEl     = document.getElementById("error-msg");
+
+  errorEl.style.display = "none";
+
+  if (!taskCode) { showError("שגיאה: קוד משימה חסר בקישור."); return; }
+  if (beforeFiles.length === 0) { showError("יש לצרף לפחות תמונה אחת לפני הביצוע."); return; }
+  if (afterFiles.length === 0)  { showError("יש לצרף לפחות תמונה אחת אחרי הביצוע."); return; }
+
+  document.getElementById("submit-btn").disabled = true;
+  document.getElementById("progress-wrap").style.display = "block";
+  setProgress(5, "מכווץ תמונות...");
+
+  // כיווץ תמונות
+  const compressedBefore = await Promise.all(Array.from(beforeFiles).map(compressImage));
+  const compressedAfter  = await Promise.all(Array.from(afterFiles).map(compressImage));
+  setProgress(20, "שולח נתונים...");
+
+  // בניית FormData
+  const fd = new FormData();
+  fd.append("taskCode", taskCode);
+  fd.append("taskName", taskName);
+  fd.append("taskDate", taskDate);
+  fd.append("team", team);
+  fd.append("notes", notes);
+
+  compressedBefore.forEach((f, i) => fd.append("before_" + i, f, f.name));
+  compressedAfter.forEach((f,  i) => fd.append("after_"  + i, f, f.name));
+  Array.from(docsFiles).forEach((f, i) => fd.append("doc_" + i, f, f.name));
+
+  setProgress(30, "מעלה קבצים...");
+
+  try {
+    const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+    const json = await res.json();
+    if (json.success) {
+      setProgress(100, "הושלם!");
+      setTimeout(() => {
+        document.getElementById("form-body").style.display = "none";
+        document.getElementById("success-screen").style.display = "block";
+      }, 600);
+    } else {
+      throw new Error(json.error || "שגיאה לא ידועה");
+    }
+  } catch (err) {
+    showError("אירעה שגיאה בשליחה: " + err.message);
+    document.getElementById("submit-btn").disabled = false;
+    document.getElementById("progress-wrap").style.display = "none";
+  }
+}
+
+function setProgress(pct, label) {
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-label").textContent = label;
+}
+
+function showError(msg) {
+  const el = document.getElementById("error-msg");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+</script>
+</body>
+</html>
